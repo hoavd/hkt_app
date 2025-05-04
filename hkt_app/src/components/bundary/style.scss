@@ -1,0 +1,25 @@
+.error-boundary {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  .error-boundary-content {
+    color: red;
+  }
+
+  .error-boundary-reload {
+    cursor: pointer;
+
+    &:last-child {
+      margin-left: 15px;
+    }
+  }
+
+  .error-boundary-button {
+    display: flex;
+    align-items: center;
+  }
+}

@@ -1,0 +1,38 @@
+.header-container {
+  position: fixed;
+  top: 0;
+  //background-color: #001939;
+  background-color: rgb(36, 37, 37);
+  width: 100vw;
+  z-index: 3;
+  .header-content {
+    height: 60px;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-content-left {
+      .logo {
+        margin-left: 20px;
+        width: 120px;
+      }
+    }
+
+    .header-content-right {
+      display: flex;
+      .logo-personal {
+        margin-left: 10px;
+        img {
+          width: 200px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 877px) {
+  .header-container {
+    display: none;
+  }
+}

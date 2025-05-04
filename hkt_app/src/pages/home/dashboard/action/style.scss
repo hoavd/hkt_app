@@ -1,0 +1,127 @@
+$header-home: 124px;
+$height-input: 80px;
+
+.action-container {
+  border: 1px solid #878787;
+  background-color: rgb(36, 37, 37);
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  position: relative;
+  .box-insert {
+    padding: 0 14px;
+  }
+  .hr-line-tran {
+    margin: 0 !important;
+  }
+  .box-map-msg {
+    display: flex;
+    flex-direction: column-reverse;
+    padding-right: 8px;
+    overflow-y: auto;
+    margin: 4px;
+    border-radius: 4px;
+    height: calc((100vh) - #{$header-home} - 80px - 38px);
+    color: #fff;
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 12px;
+    }
+    &::-webkit-scrollbar-track {
+      background: none;
+    }
+    &::-webkit-scrollbar-thumb {
+      border-radius: 16px;
+      background: #a3bac8;
+    }
+  }
+  .box-input-msg {
+    margin: 4px;
+    display: flex;
+    align-items: center;
+    width: 330px;
+    .ant-input {
+      height: $height-input !important;
+      color: #fff;
+    }
+    img {
+      margin: 8px;
+      cursor: pointer;
+    }
+  }
+
+  .messages {
+    display: flex;
+    margin: 8px 0;
+    .text_wrapper {
+      border-radius: 10px;
+      background-color: #878787;
+      padding: 6px;
+      max-width: 250px;
+      .text {
+        font-size: 16px;
+        font-weight: 600;
+        word-wrap: break-word;
+      }
+      .time {
+        font-size: 12px;
+      }
+    }
+    .avatar {
+      img {
+        width: 42px;
+        margin-right: 8px;
+      }
+    }
+  }
+  .messages-send {
+    display: flex;
+    margin: 8px 0;
+    flex-direction: row-reverse;
+    .text_wrapper {
+      border-radius: 10px;
+      background-color: #dc1d2d;
+      padding: 6px;
+      max-width: 250px;
+      .text {
+        font-size: 16px;
+        font-weight: 600;
+        word-wrap: break-word;
+      }
+      .time {
+        font-size: 12px;
+      }
+    }
+    .avatar {
+      img {
+        width: 42px;
+        margin-left: 8px;
+      }
+    }
+  }
+}
+
+.ant-tabs-tab-btn {
+  .label-tab {
+    .label {
+      position: relative;
+    }
+    .dot {
+      position: absolute;
+      width: 9px;
+      height: 8px;
+      background: #f37021;
+      border-radius: 5px;
+      top: 2px;
+      right: 0px;
+    }
+  }
+}
+
+@media screen and (max-width: 876px) {
+  .action-container {
+    height: calc((100vh) - #{$header-home} - 24px);
+    .box-input-msg {
+      width: 290px;
+    }
+  }
+}

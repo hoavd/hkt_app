@@ -1,0 +1,282 @@
+.padding-content-page-tran {
+  padding: 16px 32px;
+}
+
+.tran-action-tab {
+  width: 290px;
+  .ant-tabs-nav {
+    background-color: #26354c;
+  }
+}
+
+.rotate-chat {
+  transform: rotate(-90deg);
+}
+
+.box-chat-show {
+  position: absolute;
+  top: 44px;
+  right: 282px;
+  padding: 12px;
+  background-color: #f37021;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  display: flex;
+  align-items: center;
+  .text-chat {
+    color: #fff;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  img {
+    width: 16px;
+  }
+}
+
+.box-chat-hidden {
+  padding: 12px;
+  background-color: #f37021;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  display: flex;
+  align-items: center;
+  .text-chat {
+    color: #fff;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  img {
+    width: 16px;
+  }
+}
+
+.body-tran-container {
+  .container-tran-content::-webkit-scrollbar {
+    display: none;
+  }
+  border-radius: 4px;
+  width: 100%;
+  height: calc((100vh) - 54px);
+  display: flex;
+  .container-tran-content {
+    margin-right: 8px;
+    border-radius: 4px;
+    width: 100%;
+    overflow-y: scroll;
+    .template-two-col {
+      display: grid;
+      grid-template-columns: 50% 50%;
+      align-items: end;
+    }
+    .template-two-col-swap {
+      display: grid;
+      grid-template-columns: 67% 33%;
+      align-items: start;
+    }
+    .template-two-col-swap-cash {
+      display: grid;
+      grid-template-columns: 100%;
+    }
+    .template-two-col-enterprise {
+      display: grid;
+      grid-template-columns: 50% 50%;
+    }
+    .template-three-col {
+      display: grid;
+      grid-template-columns: 33% 33% 33%;
+      align-items: end;
+    }
+    .box-add-id-number {
+      display: grid;
+      grid-template-columns: 90% 10%;
+      align-items: center;
+      .div-add-id-number {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        align-items: center;
+      }
+    }
+    .template-two-col-swap {
+      display: grid;
+      grid-template-columns: 67% 33%;
+      align-items: start;
+    }
+    .template-two-col-swap-cash {
+      display: grid;
+      grid-template-columns: 100%;
+    }
+  }
+  .box-insert {
+    .box-insert-content {
+      .ant-form-item-label {
+        width: 100% !important;
+        font-weight: 500;
+        & > label {
+          color: rgb(255 255 255 / 0.88);
+        }
+      }
+    }
+  }
+  .container-tran-action {
+    width: 450px;
+    .ant-tabs {
+      position: absolute;
+      z-index: 11;
+      .ant-tabs-content {
+        width: 350px;
+      }
+    }
+  }
+
+  .row-form-button-tran {
+    position: fixed;
+    bottom: 16px;
+    left: calc((100vw) - 620px);
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    .ant-btn {
+      width: 100px;
+      height: 36px;
+      padding: 4px;
+      margin-left: 8px;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      img {
+        width: 16px;
+        margin-right: 4px;
+      }
+    }
+    .btn-add {
+      background: linear-gradient(to right, #f37021, #ed1c24);
+    }
+    .btn-can {
+      background: #6c7585;
+    }
+    .btn-sub {
+      background: #26b031;
+    }
+    .ant-btn-default:not(:disabled):not(.ant-btn-disabled):hover {
+      color: #fff;
+    }
+  }
+
+  .div-chat-mobile {
+    display: none;
+  }
+
+  .div-chat-mobile-hidden {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 670px) and (max-width: 876px) {
+  .padding-content-page-tran {
+    padding: 8px;
+    position: fixed;
+  }
+  .body-tran-container {
+    height: calc((100vh) - 110px);
+  }
+  .container-tran-action {
+    display: none;
+  }
+  .row-form-button-tran {
+    bottom: 12px !important;
+    right: 16px;
+  }
+
+  .div-chat-mobile {
+    position: fixed;
+    z-index: 4;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex !important;
+    justify-content: flex-end;
+    background-color: rgba($color: #001939, $alpha: 0.5);
+  }
+
+  .div-chat-mobile-hidden {
+    display: flex !important;
+    justify-content: flex-end;
+    position: fixed;
+    z-index: 4;
+    right: -54px;
+    top: 112px;
+  }
+}
+
+@media screen and (max-width: 670px) {
+  .padding-content-page-tran {
+    padding: 8px;
+    position: fixed;
+  }
+  .body-tran-container {
+    height: calc((100vh) - 110px);
+    .container-tran-content {
+      margin-right: 8px;
+      border-radius: 4px;
+      width: 100%;
+      overflow-y: scroll;
+      .template-two-col {
+        display: block;
+      }
+      .template-two-col-swap {
+        display: block;
+      }
+      .template-two-col-swap-cash {
+        display: block;
+      }
+      .template-two-col-enterprise {
+        display: block;
+      }
+      .template-three-col {
+        display: block;
+      }
+      .box-add-id-number {
+        .div-add-id-number {
+          grid-template-columns: 100%;
+        }
+      }
+      .template-two-col-swap {
+        display: block;
+      }
+      .template-two-col-swap-cash {
+        display: block;
+      }
+    }
+  }
+  .container-tran-action {
+    display: none;
+  }
+  .row-form-button-tran {
+    bottom: 12px !important;
+    right: 16px;
+    left: 0 !important;
+  }
+
+  .div-chat-mobile {
+    position: fixed;
+    z-index: 4;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex !important;
+    justify-content: flex-end;
+    background-color: rgba($color: #001939, $alpha: 0.5);
+  }
+
+  .div-chat-mobile-hidden {
+    display: flex !important;
+    justify-content: flex-end;
+    position: fixed;
+    z-index: 4;
+    right: 0;
+    top: 112px;
+  }
+}

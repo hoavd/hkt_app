@@ -1,0 +1,13 @@
+* {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+}
+.body-index-html {
+  & > :nth-child(2) {
+    display: block !important;
+    iframe {
+      bottom: 64px !important;
+    }
+  }
+}
