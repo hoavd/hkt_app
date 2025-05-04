@@ -1,0 +1,129 @@
+info:
+  app:
+    name: '@info.app.name@'
+    version: '@info.app.version@'
+    grailsVersion: '@info.app.grailsVersion@'
+spring:
+  h2:
+    console:
+      #      Golive nhớ set bằng false
+      enabled: true
+      settings:
+        web-allow-others: true
+grails:
+  plugin:
+    springsecurity:
+      authority:
+        className: com.tcb.system.security.Role
+      requestMap:
+        className: com.tcb.system.security.RequestMap
+      securityConfigType: Requestmap
+      logout:
+        postOnly: false
+      userLookup:
+        userDomainClassName: com.tcb.system.security.User
+        authorityJoinClassName: com.tcb.system.security.UserRole
+      apf:
+        storeLastUsername: true
+      rejectIfNoRule: true
+      fii:
+        rejectPublicInvocations: false
+      providerNames: [ 'daoAuthenticationProvider' ]
+      rest:
+        token:
+          storage:
+            jwt:
+              expiration: 36000
+  serverURL: 'http://localhost:8090'
+
+  #Config wkhtmltopdf import được file stype, javascript,...
+  assets:
+    url: 'http://localhost:8090/assets/'
+  cors:
+    enabled: true
+    exposedHeaders: [ 'Content-Disposition' ]
+    allowCredentials: true
+    allowedOriginPatterns: '*'
+  mime:
+    disable:
+      accept:
+        header:
+          userAgents:
+          - Gecko
+          - WebKit
+          - Presto
+          - Trident
+    types:
+      json:
+      - application/json
+      - text/json
+      hal:
+      - application/hal+json
+      - application/hal+xml
+      xml:
+      - text/xml
+      - application/xml
+      atom: application/atom+xml
+      css: text/css
+      csv: text/csv
+      js: text/javascript
+      rss: application/rss+xml
+      text: text/plain
+      all: '*/*'
+  codegen:
+    defaultPackage: com.tcb
+  profile: rest-api
+  views:
+    default:
+      codec: html
+quartz.autoStartup: false
+dataSource:
+  driverClassName: org.h2.Driver
+  username: sa
+  password: ''
+  pooled: true
+  jmxExport: true
+environments:
+  development:
+    dataSource:
+      url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;
+      dbCreate: update
+      logSql: true
+      driverClassName: org.h2.Driver
+      username: sa
+      password: 'sa'
+      type: com.zaxxer.hikari.HikariDataSource
+      properties:
+        idleTimeout: 60000
+        minimumIdle: 5
+        maximumPoolSize: 5
+        connectionTimeout: 600000
+        maxLifetime: 1800000
+        poolName: 'grails-hikari-h2'
+  production:
+    dataSource:
+      url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;
+      dbCreate: create-drop
+      logSql: true
+      driverClassName: org.h2.Driver
+      username: sa
+      password: 'sa'
+      type: com.zaxxer.hikari.HikariDataSource
+      properties:
+        idleTimeout: 60000
+        minimumIdle: 5
+        maximumPoolSize: 5
+        connectionTimeout: 600000
+        maxLifetime: 1800000
+        poolName: 'grails-hikari-h2'
+hibernate:
+  allow_update_outside_transaction: true
+  cache:
+    queries: false
+    use_second_level_cache: false
+    use_query_cache: false
+
+server:
+  port: "8090"
+
+prefix: 'tcb'
