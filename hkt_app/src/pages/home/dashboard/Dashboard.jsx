@@ -39,11 +39,11 @@ export default function Dashboard() {
   };
 
   const onMessageReceived = (payload) => {
-    const { successRate, errorRate } = JSON.parse(payload.body).data;
+    const { successRate, errorRate, totalRequests } = JSON.parse(payload.body).data;
     const now = new Date();
     const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-    const newPoint = { time: label, successRate, errorRate };
+    const newPoint = { time: label, successRate, errorRate, totalRequests };
 
     setData((prev) => {
       const arr = [...prev, newPoint];
@@ -61,6 +61,7 @@ export default function Dashboard() {
   const [status, setStatus] = useState('UP');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const prevRate = useRef(data[data.length - 1]?.successRate || 70);
+  const prevTotal = useRef(data[data.length - 1]?.totalRequests);
 
   /* ---------- simulate realtime data ---------- */
   /*useEffect(() => {
@@ -89,6 +90,7 @@ export default function Dashboard() {
     const seed = generateSeed();
     setData(seed);
     prevRate.current = seed[seed.length - 1].successRate;
+    prevTotal.current = seed[seed.length - 1].totalRequests;
     setStatus('UP');
   };
 
@@ -104,12 +106,13 @@ export default function Dashboard() {
 
   const TooltipBox = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const { successRate, errorRate } = payload[0].payload;
+      const { successRate, errorRate, totalRequests } = payload[0].payload;
       return (
         <div style={{ background: '#fff', border: '1px solid #ccc', padding: 8, fontSize: 12 }}>
           <p style={{ margin: 0, fontWeight: 600 }}>{label}</p>
           <p style={{ margin: 0 }}>Success Rate: {successRate}%</p>
           <p style={{ margin: 0 }}>Error Rate: {errorRate}%</p>
+          <p style={{ margin: 0 }}>Total Req: {totalRequests}</p>
         </div>
       );
     }
@@ -141,28 +144,47 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ marginTop: 32, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: '#fafafa' }}>
+      <div
+        style={{ marginTop: 32, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}
+      >
         <ResponsiveContainer width='100%' height={300}>
           <LineChart data={data} syncId='rates'>
-            <XAxis dataKey='time' tick={{ fontSize: 10 }} interval={59} minTickGap={15} />
-            <YAxis domain={[0, 100]} orientation='right' tickFormatter={(v) => `${v}%`} />
+            <XAxis dataKey='time' tick={{ fontSize: 11, fill: '#efe9e8' }} interval={59} minTickGap={15} />
+            <YAxis
+              yAxisId='percent'
+              domain={[0, 100]}
+              orientation='right'
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 11, fill: '#efe9e8' }}
+            />
+            <YAxis yAxisId='total' orientation='left' domain={['auto', 'auto']} hide />
             <Tooltip content={<TooltipBox />} />
             <Legend verticalAlign='top' />
             <Line
+              yAxisId='percent'
               type='monotone'
               dataKey='successRate'
               stroke='#4CAF50'
               dot={false}
-              name='Success Rate'
+              name='Success Rate'
               animationDuration={300}
             />
             <Line
+              yAxisId='percent'
               type='monotone'
               dataKey='errorRate'
               stroke='#F44336'
               dot={false}
-              name='Error Rate'
+              name='Error Rate'
               animationDuration={300}
+            />
+            <Line
+              yAxisId='total'
+              type='monotone'
+              dataKey='totalRequests'
+              stroke='#2196F3'
+              dot={false}
+              name='Total Requests'
             />
           </LineChart>
         </ResponsiveContainer>
@@ -175,12 +197,17 @@ export default function Dashboard() {
 function generateSeed() {
   const seed = [];
   let rate = 70;
+  let total = 700; // start around 700 req/s
   for (let i = MAX_POINTS - 1; i >= 0; i--) {
     const t = subSeconds(new Date(), i);
     const label = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     rate += Math.floor(Math.random() * 5 - 2);
     rate = Math.max(5, Math.min(100, rate));
-    seed.push({ time: label, successRate: rate, errorRate: 100 - rate });
+
+    const randomLoad = Math.floor(Math.random() * 200) + 600; // 600‑799
+    total = Math.round(total * 0.8 + randomLoad * 0.2);
+    // console.log(label);
+    seed.push({ time: label, successRate: rate, errorRate: 100 - rate, totalRequests: total });
   }
   return seed;
 }
