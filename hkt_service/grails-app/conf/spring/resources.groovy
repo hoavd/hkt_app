@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletResponse
 beans = {
     //websocket config
     webSocketConfig(CustomWebSocketConfig)
+    textWebSocketHandler(MyWebSocketHandler)
     //--
 
     userPasswordEncoderListener(UserPasswordEncoderListener)

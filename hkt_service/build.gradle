@@ -64,6 +64,8 @@ dependencies {
     implementation "io.github.zyro23:grails-spring-websocket:2.6.0-RC1"
     implementation "org.springframework.security:spring-security-config"
     implementation "org.springframework.security:spring-security-messaging"
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework:spring-messaging'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     //--
 

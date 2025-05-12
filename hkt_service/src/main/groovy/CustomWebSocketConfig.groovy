@@ -20,6 +20,8 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
 
 @Configuration
@@ -36,9 +38,11 @@ class CustomWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     void registerStompEndpoints(StompEndpointRegistry stompEndpointRegistry) {
-//        stompEndpointRegistry.addEndpoint("/stomp").setAllowedOriginPatterns(allowedOrigin).withSockJS()
-        stompEndpointRegistry.addEndpoint("/stomp").setAllowedOrigins("http://localhost:4000", "http://localhost:8090",
-                "http://localhost:8080",).withSockJS()
+
+        stompEndpointRegistry.addEndpoint("/stomp").setAllowedOriginPatterns(allowedOrigin).withSockJS()
+        stompEndpointRegistry.addEndpoint("/stomppy").setAllowedOriginPatterns(allowedOrigin)
+//        stompEndpointRegistry.addEndpoint("/stomp").setAllowedOrigins("http://localhost:4000", "http://localhost:8090",
+//                "http://localhost:8080",).withSockJS()
 
     }
 

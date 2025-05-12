@@ -21,7 +21,7 @@ class BootStrap {
                 '/', '/oauth/', '/oauth/*', '/h2-console', '/h2-console/**',
                 '/login', '/login.*', '/login/**',
                 '/logout', '/logout.*', '/logout/*',
-                '/assets/**', '/stomp', '/stomp/**', '/swagger/**',
+                '/assets/**', '/stomp', '/stomp/**', '/swagger/**','/stomppy', '/stomppy/**',
                 '/api/user/listRoleGroup', '/api/role/clearCachedRequestmaps',
                 '/api/fingerprint/navItem', '/api/fingerprint/clearCachedRequestMaps',
                 '/chat/**'
