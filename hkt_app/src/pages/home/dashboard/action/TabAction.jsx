@@ -2,7 +2,7 @@ import { Tabs } from 'antd';
 import { useState } from 'react';
 import Chat from './Chat';
 import './style.scss';
-const TabAction = ({ showTab }) => {
+const TabAction = ({ showTab, uuid }) => {
   // const dispatch = useDispatch();
   // const { isViewChat, dataTranMsgQue } = useSelector((state) => state.tranReducer);
   // const [isViewChatState, setIsViewChatState] = useState(false);
@@ -23,7 +23,7 @@ const TabAction = ({ showTab }) => {
           <div className='dot' />
         </div>
       ),
-      children: <Chat data={''} />
+      children: <Chat uuid={uuid} />
     }
   ];
 

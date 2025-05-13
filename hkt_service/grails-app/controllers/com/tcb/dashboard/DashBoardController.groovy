@@ -14,23 +14,36 @@ class DashBoardController {
     }
 
     def pushVolume() {
+        commonService.printlnActionParams(actionUri, params, request, false)
         def json = request.JSON
         def result = dashBoardService.pushVolume(json)
         respond(result, status: result.httpStatus)
     }
 
     def pushMessage() {
+        commonService.printlnActionParams(actionUri, params, request, false)
         def json = request.JSON
         def result = dashBoardService.pushMessage(json)
         respond(result, status: result.httpStatus)
     }
 
-    def getVolumeHistory(){
-        def result = dashBoardService.pushVolume(json)
-        respond(result, status: result.httpStatus)
+    def getVolume() {
+        commonService.printlnActionParams(actionUri, params, request, false)
+        if (!params.offset) {
+            params << [offset: 0]
+        }
+        if (!params.max) {
+            params << [max: 600]
+        }
+        def result = dashBoardService.getVolume(params)
+        if (result) {
+            respond([list: result.data])
+        } else {
+            respond([list: []])
+        }
     }
 
-    def findAlert(){
+    def findAlert() {
         commonService.printlnActionParams(actionUri, params, request, false)
         if (!params.offset) {
             params << [offset: 0]
@@ -47,7 +60,20 @@ class DashBoardController {
         }
     }
 
-    def getAlert(){
+    def getAlert() {
         commonService.printlnActionParams(actionUri, params, request, false)
+        if (params.id) {
+            def result = dashBoardService.getAlert(params)
+            respond(result)
+        } else {
+            respond([])
+        }
+    }
+
+    def findSolution(){
+        commonService.printlnActionParams(actionUri, params, request, false)
+        def json = request.JSON
+        def result = dashBoardService.findSolution(json)
+        respond(result, status: result.httpStatus)
     }
 }

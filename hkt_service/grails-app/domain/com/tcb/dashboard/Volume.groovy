@@ -6,13 +6,15 @@ import grails.util.Holders
 class Volume extends BaseDomain {
     double successRate
     double errorRate
+    double totalRequests
 
     static mapping = {
         table "${Holders.grailsApplication.config.prefix}_volume"
     }
 
     static constraints = {
-        successRate nullable: false
-        errorRate nullable: false
+        successRate nullable: true
+        errorRate nullable: true
+        totalRequests nullable: true
     }
 }

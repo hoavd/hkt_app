@@ -4,26 +4,78 @@ import { useSelector } from 'react-redux';
 import IconUser from '../../../../assets/images/icon-user.png';
 import IconSend from '../../../../assets/images/send.png';
 import useNotify from '../../../../hooks/useNotify';
-import { getUsername } from '../../../../utils/storage';
-import { getAllUrlParams } from '../../../../utils/tools';
+import { getToken, getUsername } from '../../../../utils/storage';
 import { chatAiSystem, getChatAiSystem } from '../../../../services/dashboard/alert';
+import SockJS from 'sockjs-client';
+import { BASE_URL_SOCKET, topicPath } from '../../../../config/apiPath';
+import Stomp from 'stompjs';
 
 const { TextArea } = Input;
-const Chat = ({ data }) => {
-  // const dispatch = useDispatch();
+let stompClient;
+const Chat = ({ uuid }) => {
+  const [isError, setIsError] = useState(true);
+  const token = getToken();
   const notify = useNotify();
   const username = getUsername();
-  const { typepic } = getAllUrlParams(window.location.href);
-  // const { dataTranMsg } = useSelector((state) => state.tranReducer);
+  const [dataAlertMsg, setDataAlertMsg] = useState([]);
   const { userInfoPublic } = useSelector((state) => state.userReducer);
 
   const boxMessageRef = useRef();
-
   const [dataMsgMap, setDataMsgMap] = useState([]);
   const [valueInput, setValueInput] = useState(null);
   const [isDisable, setIsDisable] = useState(false);
   const [pageNum, setPageNum] = useState(1);
   // const [isFirst, setIsFirst] = useState(true);
+
+  useEffect(() => {
+    if (isError && token) {
+      connectServerGetData();
+    }
+    // eslint-disable-next-line
+  }, [isError, token]);
+  const connectServerGetData = () => {
+    setIsError(false);
+    const socket = new SockJS(BASE_URL_SOCKET);
+    stompClient = Stomp.over(socket);
+    stompClient.debug = function (str) {
+      // append the debug log to a #debug div
+      console.log(str);
+    };
+    stompClient.heartbeat = {
+      outgoing: 0,
+      incoming: 10000
+    };
+    stompClient.connect({ Authorization: 'Bearer ' + token }, onConnected, onError);
+  };
+  const onConnected = () => {
+    console.log('uuid: ' + uuid);
+    if (uuid) {
+      stompClient.subscribe(`${topicPath.topicMessage}-${uuid}`, onMessageReceived);
+    }
+  };
+
+  const onMessageReceived = (payload) => {
+    const { data, type } = JSON.parse(payload.body);
+    console.log(data);
+    setDataAlertMsg(data);
+    console.log(type);
+  };
+
+  useEffect(() => {
+    setDataMsgMap((prev) => {
+      if (Array.isArray(dataAlertMsg)) return [...dataAlertMsg];
+      if (dataAlertMsg) return [dataAlertMsg, ...prev];
+      return prev;
+    });
+    // eslint-disable-next-line
+  }, [dataAlertMsg]);
+
+  const onError = (error) => {
+    console.log(error);
+    setTimeout(() => {
+      setIsError(true);
+    }, 5000);
+  };
 
   const handleChangeInput = (e) => {
     const value = e.target.value.trimStart();
@@ -41,7 +93,7 @@ const Chat = ({ data }) => {
     if (!isDisable) {
       setIsDisable(true);
       chatAiSystem(
-        { alertId: data.id, uuid: data.uuid, msg: msgInput },
+        { uuid: uuid, msg: msgInput },
         (res) => {
           if (res.data.success) {
             boxMessageRef.current?.scrollTo(0, 0);
@@ -65,9 +117,9 @@ const Chat = ({ data }) => {
   };
 
   useEffect(() => {
-    if (data?.transactionId)
+    if (uuid)
       getChatAiSystem(
-        { max: pageNum * 10, offset: 0, order: 'desc', transactionId: data.transactionId, uuid: data.uuid },
+        { max: pageNum * 10, offset: 0, order: 'desc', uuid: uuid },
         (res) => {
           setDataMsgMap(res.data.list);
           console.log(res);
@@ -109,16 +161,15 @@ const Chat = ({ data }) => {
           value={valueInput}
           placeholder='Enter ...'
           onChange={handleChangeInput}
-          disabled={typepic === 'view'}
           onKeyDown={(e) => {
-            if (typepic !== 'view') handleOnKeyDown(e);
+            handleOnKeyDown(e);
           }}
         />
         <img
           src={IconSend}
           alt=''
           onClick={() => {
-            if (typepic !== 'view') handleSendMsg(valueInput);
+            handleSendMsg(valueInput);
           }}
         />
       </div>

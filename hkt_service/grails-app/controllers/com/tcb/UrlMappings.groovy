@@ -26,6 +26,11 @@ class UrlMappings {
         "/api/dashboard/pushMessage"(controller: 'dashBoard', action: 'pushMessage')
 
         get "/api/dashboard/findAlert"(controller: 'dashBoard', action: 'findAlert')
+        get "/api/dashboard/alert/$id(.$format)?"(controller: 'dashBoard', action: 'getAlert')
+
+        get "/api/dashboard/volume"(controller: 'dashBoard', action: 'getVolume')
+
+        get "/api/dashboard/findSolution/$id(.$format)?"(controller: 'dashBoard', action: 'findSolution')
         //--
     }
 }

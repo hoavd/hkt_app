@@ -19,7 +19,7 @@ const ListAlert = () => {
 
   const { alert } = useSelector((state) => state.appReducer);
   const onRowClick = (record) => {
-    navigate(`/dashboard/alert?${String(record.id)}`);
+    navigate(`/dashboard/alert/${String(record.uuid)}`);
   };
 
   useEffect(() => {
@@ -82,8 +82,8 @@ const ListAlert = () => {
       width: 50
     },
     {
-      title: 'Name',
-      dataIndex: 'name',
+      title: 'Severity',
+      dataIndex: 'severity',
       key: 'name',
       width: 200
     },
@@ -104,6 +104,12 @@ const ListAlert = () => {
       dataIndex: 'desc',
       key: 'desc',
       width: 200
+    },
+    {
+      title: 'uuid',
+      dataIndex: 'uuid',
+      key: 'uuid',
+      hidden: true
     }
   ];
 

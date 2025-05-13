@@ -8,5 +8,5 @@ export const appPath = {
   // Trang home
   home: '/home', // Trang chủ - fas fa-home
   listWarning: 'dashboard/listWarning',
-  alert: 'dashboard/alert'
+  alert: 'dashboard/alert/:id'
 };

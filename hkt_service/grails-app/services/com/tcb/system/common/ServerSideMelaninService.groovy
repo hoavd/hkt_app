@@ -110,7 +110,7 @@ class ServerSideMelaninService {
      * Hàm sẽ tự động phân tích và truyền về kết quả cần thiết
      * @return
      */
-    def listdynamic(String query_input, GrailsParameterMap params, def whereParam) {
+    def listdynamic(String query_input, def params, def whereParam) {
         def sql = new Sql(dataSource)
         try {
             //TYPE YOUR OWN CODE HERE

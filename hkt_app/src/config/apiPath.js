@@ -20,9 +20,12 @@ export const apiPath = {
   branch: BASE_URL + '/branch',
   branchTree: BASE_URL + '/branch/tree',
   //
+  getVolume: BASE_URL + '/dashboard/volume',
+  //
   findAlertRequest: BASE_URL + '/dashboard/findAlert',
+  findSolution: BASE_URL + '/dashboard/findSolution',
   getAlert: BASE_URL + '/dashboard/alert',
-  chatAISystem: BASE_URL + '/dashboard/saveMessage',
+  chatAISystem: BASE_URL + '/dashboard/pushMessage',
   getChatAISystem: BASE_URL + '/dashboard/getMessage'
 };
 

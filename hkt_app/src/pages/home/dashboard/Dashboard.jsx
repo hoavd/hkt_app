@@ -4,9 +4,11 @@ import Stomp from 'stompjs';
 
 import { useEffect, useRef, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, subSeconds } from 'date-fns';
+import { format, subMinutes } from 'date-fns';
 import { BASE_URL_SOCKET, topicPath } from '../../../config/apiPath';
 import { getToken } from '../../../utils/storage';
+import { getVolume } from '../../../services/dashboard/dashboard';
+import useNotify from '../../../hooks/useNotify';
 
 const MAX_POINTS = 600; // 10 minutes @ 1s interval
 let stompClient;
@@ -57,11 +59,43 @@ export default function Dashboard() {
       setIsError(true);
     }, 5000);
   };
-  const [data, setData] = useState(() => generateSeed());
-  const [status, setStatus] = useState('UP');
+  const [filteredData, setData] = useState([]);
+  const notify = useNotify();
+  // time range filter: default from 10 minutes ago to now
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const prevRate = useRef(data[data.length - 1]?.successRate || 70);
-  const prevTotal = useRef(data[data.length - 1]?.totalRequests);
+  const [fromTime, setFromTime] = useState(() => format(subMinutes(new Date(), 10), 'HH:mm'));
+  const [toTime, setToTime] = useState(() => format(new Date(), 'HH:mm'));
+
+  const prevRate = useRef(filteredData[filteredData?.length - 1]?.successRate || 70);
+  const prevTotal = useRef(filteredData[filteredData?.length - 1]?.totalRequests);
+
+  useEffect(() => {
+    getHisVolume({ selectedDate: selectedDate, fromTime: fromTime, toTime: toTime });
+    // eslint-disable-next-line
+  }, []);
+
+  const getHisVolume = (params) => {
+    getVolume(
+      params,
+      (res) => {
+        console.log(res.data);
+        let json = [];
+        if (res.data) {
+          json = res.data.list;
+          const seed = json
+            .slice(-MAX_POINTS)
+            .map((pt) => ({ ...pt, timestamp: pt.timestamp || new Date(pt.time).toISOString() }));
+          setData(seed);
+          const last = seed.at(-1);
+          prevRate.current = last?.successRate;
+          prevTotal.current = last?.totalRequests;
+        }
+      },
+      (err) => {
+        notify.error(err?.data?.msg);
+      }
+    );
+  };
 
   /* ---------- simulate realtime data ---------- */
   /*useEffect(() => {
@@ -87,21 +121,7 @@ export default function Dashboard() {
 
   /* ---------- helpers ---------- */
   const reset = () => {
-    const seed = generateSeed();
-    setData(seed);
-    prevRate.current = seed[seed.length - 1].successRate;
-    prevTotal.current = seed[seed.length - 1].totalRequests;
-    setStatus('UP');
-  };
-
-  const exportCSV = () => {
-    const rows = [['Time', 'SuccessRate(%)', 'ErrorRate(%)'], ...data.map((r) => [r.time, r.successRate, r.errorRate])];
-    const csv = rows.map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `request_rate_${selectedDate}.csv`;
-    a.click();
+    window.location.reload();
   };
 
   const TooltipBox = ({ active, payload, label }) => {
@@ -125,89 +145,40 @@ export default function Dashboard() {
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
         <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>Realtime Request Rates (Simulated)</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 600, color: status === 'UP' ? 'green' : 'red' }}>{status}</span>
-          <input
-            type='date'
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: 4 }}
-          />
-          <button
-            onClick={exportCSV}
-            style={{ padding: '6px 12px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 4 }}
-          >
-            Export CSV
-          </button>
+          <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+          <input type='time' value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
+          <input type='time' value={toTime} onChange={(e) => setToTime(e.target.value)} />
           <button onClick={reset} style={{ padding: '6px 12px', background: '#ccc', border: 'none', borderRadius: 4 }}>
             Reset
           </button>
         </div>
       </div>
 
-      <div
-        style={{ marginTop: 32, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}
-      >
-        <ResponsiveContainer width='100%' height={300}>
-          <LineChart data={data} syncId='rates'>
-            <XAxis dataKey='time' tick={{ fontSize: 11, fill: '#efe9e8' }} interval={59} minTickGap={15} />
-            <YAxis
-              yAxisId='percent'
-              domain={[0, 100]}
-              orientation='right'
-              tickFormatter={(v) => `${v}%`}
-              tick={{ fontSize: 11, fill: '#efe9e8' }}
-            />
-            <YAxis yAxisId='total' orientation='left' domain={['auto', 'auto']} hide />
-            <Tooltip content={<TooltipBox />} />
-            <Legend verticalAlign='top' />
-            <Line
-              yAxisId='percent'
-              type='monotone'
-              dataKey='successRate'
-              stroke='#4CAF50'
-              dot={false}
-              name='Success Rate'
-              animationDuration={300}
-            />
-            <Line
-              yAxisId='percent'
-              type='monotone'
-              dataKey='errorRate'
-              stroke='#F44336'
-              dot={false}
-              name='Error Rate'
-              animationDuration={300}
-            />
-            <Line
-              yAxisId='total'
-              type='monotone'
-              dataKey='totalRequests'
-              stroke='#2196F3'
-              dot={false}
-              name='Total Requests'
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: 16, marginTop: 32 }}>
+        <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
+          <ResponsiveContainer width='100%' height={300}>
+            <LineChart data={filteredData} syncId='metrics'>
+              <XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
+              <YAxis domain={[0, 100]} orientation='right' tickFormatter={(v) => `${v}%`} />
+              <Tooltip content={<TooltipBox />} />
+              <Legend verticalAlign='top' />
+              <Line type='monotone' dataKey='successRate' stroke='#4CAF50' dot={false} name='Success Rate' />
+              <Line type='monotone' dataKey='errorRate' stroke='#F44336' dot={false} name='Error Rate' />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
+          <ResponsiveContainer width='100%' height={300}>
+            <LineChart data={filteredData} syncId='metrics'>
+              <XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#3c81ef' }} />
+              <Tooltip content={<TooltipBox />} />
+              <Legend verticalAlign='top' />
+              <Line type='monotone' dataKey='totalRequests' stroke='#2196F3' dot={false} name='Total Requests' />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
-}
-
-/* ---------- util: generate 10‑minute seed ---------- */
-function generateSeed() {
-  const seed = [];
-  let rate = 70;
-  let total = 700; // start around 700 req/s
-  for (let i = MAX_POINTS - 1; i >= 0; i--) {
-    const t = subSeconds(new Date(), i);
-    const label = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    rate += Math.floor(Math.random() * 5 - 2);
-    rate = Math.max(5, Math.min(100, rate));
-
-    const randomLoad = Math.floor(Math.random() * 200) + 600; // 600‑799
-    total = Math.round(total * 0.8 + randomLoad * 0.2);
-    // console.log(label);
-    seed.push({ time: label, successRate: rate, errorRate: 100 - rate, totalRequests: total });
-  }
-  return seed;
 }

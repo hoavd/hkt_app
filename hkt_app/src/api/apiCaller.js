@@ -83,18 +83,8 @@ export const getRequest = async (url = '', params, successCallback, errorCallbac
             // notificationWarning('Token expried');
             setTimeout(() => logout(), 1000);
           } else if (response?.status === 403 || response?.response?.status === 403) {
-            if (url.indexOf('/transactionStatusReport') !== -1) {
-              return;
-            } else if (url.indexOf('/transaction/getListTrans') !== -1) {
-              successCallback(response);
-            } else if (url.indexOf('/exportTempImportDeal') !== -1) {
-              successCallback(response);
-            } else if (url.indexOf('/user/publicInfo') !== -1) {
-              successCallback(response);
-            } else {
-              notificationWarning('403 Forbidden');
-              setTimeout(() => changeHome(), 1000);
-            }
+            notificationWarning('403 Forbidden');
+            setTimeout(() => changeHome(), 1000);
           } else if (response?.status < 300 || response?.response?.status < 300) successCallback(response);
           else errorCallback(response);
         } catch (error) {
