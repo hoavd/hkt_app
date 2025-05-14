@@ -18,5 +18,5 @@ export const chatAiSystem = async (params, successCallback, errorCallback) => {
 };
 
 export const getChatAiSystem = async (params, successCallback, errorCallback) => {
-  await getRequest(`${apiPath.getChatAISystem}/${params.uuid}`, {}, successCallback, errorCallback);
+  await getRequest(`${apiPath.getChatAISystem}/${params.uuid}`, params, successCallback, errorCallback);
 };

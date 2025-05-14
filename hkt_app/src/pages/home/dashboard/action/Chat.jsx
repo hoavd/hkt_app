@@ -126,7 +126,6 @@ const Chat = ({ uuid }) => {
         { max: pageNum * 10, offset: 0, order: 'desc', uuid: uuid },
         (res) => {
           setDataMsgMap(res.data.list);
-          console.log(res);
           // dispatch(setDataTranMsg({ data: res.data.list, type: 'api' }));
         },
         (err) => {

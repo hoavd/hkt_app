@@ -128,7 +128,7 @@ const ListAlert = () => {
         pageSize={rowsPerPage}
         titleTable={''}
         search={{ query: query }}
-        showSearch={true}
+        showSearch={false}
         handleQuery={handleQuery}
         getPageData={getPageData}
         onRowClick={onRowClick}

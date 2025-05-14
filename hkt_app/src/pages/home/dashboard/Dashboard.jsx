@@ -4,7 +4,7 @@ import Stomp from 'stompjs';
 
 import { useEffect, useRef, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, subMinutes } from 'date-fns';
+import { parse, format, subMinutes } from 'date-fns';
 import { BASE_URL_SOCKET, topicPath } from '../../../config/apiPath';
 import { getToken } from '../../../utils/storage';
 import { getVolume } from '../../../services/dashboard/dashboard';
@@ -41,11 +41,14 @@ export default function Dashboard() {
   };
 
   const onMessageReceived = (payload) => {
-    const { successRate, errorRate, totalRequests } = JSON.parse(payload.body).data;
-    const now = new Date();
-    const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const { successRate, errorRate, totalRequests, timestamp } = JSON.parse(payload.body).data;
 
-    const newPoint = { time: label, successRate, errorRate, totalRequests };
+    // Chuyển 'YYYY-MM-DD HH:mm:ss' về Date chính xác
+    const date = parse(timestamp, 'yyyy-MM-dd HH:mm:ss', new Date());
+
+    const label = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    const newPoint = { time: label, successRate, errorRate, totalRequests, timestamp: date.toISOString() };
 
     setData((prev) => {
       const arr = [...prev, newPoint];
@@ -78,13 +81,17 @@ export default function Dashboard() {
     getVolume(
       params,
       (res) => {
-        console.log(res.data);
         let json = [];
         if (res.data) {
           json = res.data.list;
-          const seed = json
-            .slice(-MAX_POINTS)
-            .map((pt) => ({ ...pt, timestamp: pt.timestamp || new Date(pt.time).toISOString() }));
+          const seed = json.slice(-MAX_POINTS).map((pt) => {
+            const date = parse(pt.timestamp, 'yyyy-MM-dd HH:mm:ss', new Date());
+            return {
+              ...pt,
+              time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+              timestamp: date.toISOString()
+            };
+          });
           setData(seed);
           const last = seed.at(-1);
           prevRate.current = last?.successRate;
@@ -97,39 +104,22 @@ export default function Dashboard() {
     );
   };
 
-  /* ---------- simulate realtime data ---------- */
-  /*useEffect(() => {
-    const id = setInterval(() => {
-      const now = new Date();
-      const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-      let next = prevRate.current + Math.floor(Math.random() * 5 - 2);
-      next = Math.max(5, Math.min(100, next));
-      prevRate.current = next;
-      const err = 100 - next;
-      const point = { time: label, successRate: next, errorRate: err };
-      // console.log(point);
-      setData((prev) => {
-        const arr = [...prev, point];
-        return arr.length > MAX_POINTS ? arr.slice(-MAX_POINTS) : arr;
-      });
-
-      setStatus(err > 30 ? 'DOWN' : 'UP');
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);*/
-
   /* ---------- helpers ---------- */
   const reset = () => {
     window.location.reload();
   };
 
-  const TooltipBox = ({ active, payload, label }) => {
+  const TooltipBox = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const { successRate, errorRate, totalRequests } = payload[0].payload;
+      const { successRate, errorRate, totalRequests, timestamp } = payload[0].payload;
+
+      // Chuyển đổi timestamp sang giờ Việt Nam (hoặc local time)
+      const localDate = new Date(timestamp);
+      const formattedTime = localDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
       return (
         <div style={{ background: '#fff', border: '1px solid #ccc', padding: 8, fontSize: 12 }}>
-          <p style={{ margin: 0, fontWeight: 600 }}>{label}</p>
+          <p style={{ margin: 0, fontWeight: 600 }}>{formattedTime}</p>
           <p style={{ margin: 0 }}>Success Rate: {successRate}%</p>
           <p style={{ margin: 0 }}>Error Rate: {errorRate}%</p>
           <p style={{ margin: 0 }}>Total Req: {totalRequests}</p>
@@ -144,7 +134,7 @@ export default function Dashboard() {
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
         <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>Realtime Request Rates (Simulated)</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'none', alignItems: 'center', gap: 8 }}>
           <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           <input type='time' value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
           <input type='time' value={toTime} onChange={(e) => setToTime(e.target.value)} />
@@ -158,7 +148,19 @@ export default function Dashboard() {
         <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
           <ResponsiveContainer width='100%' height={300}>
             <LineChart data={filteredData} syncId='metrics'>
-              <XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
+              {/*<XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />*/}
+              <XAxis
+                dataKey='timestamp'
+                tickFormatter={(tick) =>
+                  new Date(tick).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })
+                }
+                tick={{ fontSize: 10, fill: '#e7e3e1' }}
+              />
+              ;
               <YAxis domain={[0, 100]} orientation='right' tickFormatter={(v) => `${v}%`} />
               <Tooltip content={<TooltipBox />} />
               <Legend verticalAlign='top' />
@@ -170,7 +172,17 @@ export default function Dashboard() {
         <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
           <ResponsiveContainer width='100%' height={300}>
             <LineChart data={filteredData} syncId='metrics'>
-              <XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
+              <XAxis
+                dataKey='timestamp'
+                tickFormatter={(tick) =>
+                  new Date(tick).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })
+                }
+                tick={{ fontSize: 10, fill: '#e7e3e1' }}
+              />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#3c81ef' }} />
               <Tooltip content={<TooltipBox />} />
               <Legend verticalAlign='top' />

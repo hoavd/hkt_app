@@ -13,6 +13,7 @@ class DashBoardService {
     def brokerMessagingTemplate
     def commonService
     def springSecurityService
+    def dateTimeUtilService
 
     @Transactional
     def pushAlert(def json) {
@@ -43,6 +44,7 @@ class DashBoardService {
                 volume.createdBy = springSecurityService.principal.username
                 volume.save(flush: true, failOnError: true)
                 JSONObject data = new JSONObject()
+                json << [timestamp: commonService.formatDateToString(volume.createDate, "yyyy-MM-dd HH:mm:ss")]
                 data = commonService.setDataObject(data: json)
                 brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_VOLUME, data
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
@@ -65,7 +67,6 @@ class DashBoardService {
                     message.properties = json
                     message.createdBy = springSecurityService.principal.username
                     message.save(flush: true, failOnError: true)
-
                     JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_MESSAGE,
                             data: [alerId    : alert.id,
                                    uuid      : alert.uuid,
@@ -75,6 +76,7 @@ class DashBoardService {
                                    createDate: commonService.formatDateToString(message.createDate, "dd/MM/yyyy HH:mm:ss")
                             ])
                     brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
                 }
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
             }
@@ -90,10 +92,9 @@ class DashBoardService {
         try {
             StringBuilder sql = new StringBuilder()
             def whereParam = []
-            sql.append(""" SELECT id, success_Rate, error_Rate, total_Requests, create_date, timestamp
+            sql.append(""" SELECT id, success_Rate, error_Rate, total_Requests, timestamp
                              FROM (SELECT id, success_Rate, error_Rate, total_Requests, 
-                                          TO_CHAR(create_date, 'YYYY-MM-DD HH24:MI:SS') create_date,
-                                          TO_CHAR(create_date, 'HH24:MI:SS') timestamp
+                                          TO_CHAR(create_date, 'YYYY-MM-DD HH24:MI:SS') timestamp
                                      FROM tcb_volume d
                                     WHERE 2 = 2 """)
 
@@ -117,8 +118,7 @@ class DashBoardService {
                              successRate  : d.success_Rate,
                              errorRate    : d.error_Rate,
                              totalRequests: d.total_Requests,
-                             timestamp    : d.timestamp,
-                             createDate   : d.create_date])
+                             timestamp    : d.timestamp])
                 newData.push(data)
             }
             return listdynamic.put("data", newData)
@@ -212,7 +212,7 @@ class DashBoardService {
         StringBuilder sql = new StringBuilder()
         def whereParam = []
         sql.append(""" SELECT id, msg, created_by, create_date
-                         FROM (SELECT m.id, m.msg, m.created_by, m.create_date
+                         FROM (SELECT m.id, m.msg, m.created_by, TO_CHAR(m.create_date, 'YYYY-MM-DD HH24:MI:SS') create_date
                                      FROM tcb_alert d, tcb_message m
                                     WHERE d.id = m.alert_id
                                 AND d.uuid = ? """)
@@ -241,12 +241,12 @@ class DashBoardService {
                 JSONObject data = new JSONObject()
                 data = commonService.setDataObject([uuid        : alert.uuid,
                                                     code        : alert.code,
-                                                    type        : alert.type,
+                                                    type        : ConstantWebSocket.TOPIC_MESSAGE_TYPE_SOLUTION,
                                                     severity    : alert.severity,
                                                     impactDetail: alert.impactDetail,
                                                     desc        : alert.desc
                 ])
-                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_SOLUTION, data
+                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
             } catch (Exception e) {
                 commonService.printlnException(e, 'findSolution')

@@ -80,8 +80,10 @@ const Alert = () => {
               <Form.Item name={'rootcause'} label={'Rootcause'} key={6}>
                 <Input disabled={true}></Input>
               </Form.Item>
+            </div>
+            <div className='box-insert-content'>
               <Form.Item name={'solution'} label={'Solution'} key={7}>
-                <Input disabled={true}></Input>
+                <Input.TextArea disabled={true} rows={8} />
               </Form.Item>
             </div>
           </div>
@@ -89,7 +91,6 @@ const Alert = () => {
       )
     }
   ];
-  // const { t } = useTranslation();
   return (
     <div className='body-tran-container padding-content-page-tran'>
       <div className='container-tran-content'>
