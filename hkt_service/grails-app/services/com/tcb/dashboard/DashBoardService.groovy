@@ -58,22 +58,24 @@ class DashBoardService {
     def pushMessage(def json) {
         Message.withTransaction { def status ->
             try {
-                Alert alert = Alert.findByUuid(json.uuid)
-                Message message = new Message()
-                message.alert = alert
-                message.properties = json
-                message.createdBy = springSecurityService.principal.username
-                message.save(flush: true, failOnError: true)
+                if (json?.msg) {
+                    Alert alert = Alert.findByUuid(json.uuid)
+                    Message message = new Message()
+                    message.alert = alert
+                    message.properties = json
+                    message.createdBy = springSecurityService.principal.username
+                    message.save(flush: true, failOnError: true)
 
-                JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_MESSAGE,
-                        data: [alerId    : alert.id,
-                               uuid      : alert.uuid,
-                               id        : message.id,
-                               msg       : message.msg,
-                               createdBy : message.createdBy,
-                               createDate: commonService.formatDateToString(message.createDate, "dd/MM/yyyy HH:mm:ss")
-                        ])
-                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                    JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_MESSAGE,
+                            data: [alerId    : alert.id,
+                                   uuid      : alert.uuid,
+                                   id        : message.id,
+                                   msg       : message.msg,
+                                   createdBy : message.createdBy,
+                                   createDate: commonService.formatDateToString(message.createDate, "dd/MM/yyyy HH:mm:ss")
+                            ])
+                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                }
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
             }
             catch (Exception e) {
@@ -206,10 +208,73 @@ class DashBoardService {
         }
     }
 
-    def findSolution(def json) {
-        JSONObject data = new JSONObject()
-        data = commonService.setDataObject(data: json)
-        brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
-        return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+    def getMessage(def params) {
+        StringBuilder sql = new StringBuilder()
+        def whereParam = []
+        sql.append(""" SELECT id, msg, created_by, create_date
+                         FROM (SELECT m.id, m.msg, m.created_by, m.create_date
+                                     FROM tcb_alert d, tcb_message m
+                                    WHERE d.id = m.alert_id
+                                AND d.uuid = ? """)
+        whereParam << (params.id)
+        sql.append(""" ) th """)
+        sql.append(" WHERE 1 = 1 order by id desc")
+
+        def listdynamic = serverSideMelaninService.listdynamic(sql.toString(), params, whereParam)
+        JSONArray dataAr = listdynamic.get("data") as JSONArray
+        JSONArray newData = new JSONArray()
+        for (def d in dataAr) {
+            JSONObject data = new JSONObject()
+            data.putAll([id        : d.id,
+                         msg       : d.msg,
+                         createdBy : d.created_by,
+                         createDate: d.create_date])
+            newData.push(data)
+        }
+        return listdynamic.put("data", newData)
+    }
+
+    def findSolution(def params) {
+        Alert.withTransaction { def status ->
+            try {
+                Alert alert = Alert.findByUuid(params.id)
+                JSONObject data = new JSONObject()
+                data = commonService.setDataObject([uuid        : alert.uuid,
+                                                    code        : alert.code,
+                                                    type        : alert.type,
+                                                    severity    : alert.severity,
+                                                    impactDetail: alert.impactDetail,
+                                                    desc        : alert.desc
+                ])
+                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_SOLUTION, data
+                return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+            } catch (Exception e) {
+                commonService.printlnException(e, 'findSolution')
+                return []
+            }
+        }
+    }
+
+    def saveSolution(def json) {
+        Alert.withTransaction { def status ->
+            try {
+                Alert alert = Alert.findByUuid(json.uuid)
+                alert.solution = json.solution
+                alert.updateDate = new Date()
+                alert.updatedBy = springSecurityService.principal.username
+                JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_SOLUTION,
+                        data: [alerId    : alert.id,
+                               uuid      : alert.uuid,
+                               msg       : alert.solution,
+                               createdBy : alert.updatedBy,
+                               createDate: commonService.formatDateToString(alert.createDate, "dd/MM/yyyy HH:mm:ss")
+                        ])
+                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+            } catch (Exception e) {
+                commonService.printlnException(e, 'saveSolution')
+                return []
+            }
+        }
     }
 }

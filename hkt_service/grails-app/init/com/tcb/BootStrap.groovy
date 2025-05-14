@@ -73,7 +73,8 @@ class BootStrap {
         }
 
         //tạo user admin
-        def users = [['admin', 'admin', 'ROLE_ADMIN', 'adminemail']]
+        def users = [['admin', 'admin', 'ROLE_ADMIN', 'adminemail'],
+                     ['system', 'AWS', 'ROLE_ADMIN', 'systememail'],]
 
         users.each {
             if (!User.findByUsername(it[0])) {

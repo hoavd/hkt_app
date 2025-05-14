@@ -43,6 +43,23 @@ class DashBoardController {
         }
     }
 
+    def getMessage(){
+        commonService.printlnActionParams(actionUri, params, request, false)
+        if (!params.offset) {
+            params << [offset: 0]
+        }
+        if (!params.max) {
+            params << [max: 999999999]
+        }
+
+        def listdynamic = dashBoardService.getMessage(params)
+        if (listdynamic) {
+            respond([list: listdynamic.data, total: listdynamic.recordsTotal as Long])
+        } else {
+            respond([list: [], total: 0 as Long])
+        }
+    }
+
     def findAlert() {
         commonService.printlnActionParams(actionUri, params, request, false)
         if (!params.offset) {
@@ -72,8 +89,14 @@ class DashBoardController {
 
     def findSolution(){
         commonService.printlnActionParams(actionUri, params, request, false)
+        def result = dashBoardService.findSolution(params)
+        respond(result, status: result.httpStatus)
+    }
+
+    def saveSolution() {
+        commonService.printlnActionParams(actionUri, params, request, false)
         def json = request.JSON
-        def result = dashBoardService.findSolution(json)
+        def result = dashBoardService.saveSolution(json)
         respond(result, status: result.httpStatus)
     }
 }

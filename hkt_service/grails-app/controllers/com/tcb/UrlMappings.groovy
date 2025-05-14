@@ -23,7 +23,10 @@ class UrlMappings {
         //--dashBoard
         "/api/dashboard/pushAlert"(controller: 'dashBoard', action: 'pushAlert')
         "/api/dashboard/pushVolume"(controller: 'dashBoard', action: 'pushVolume')
+
         "/api/dashboard/pushMessage"(controller: 'dashBoard', action: 'pushMessage')
+
+        get "/api/dashboard/getMessage/$id(.$format)?"(controller: 'dashBoard', action: 'getMessage')
 
         get "/api/dashboard/findAlert"(controller: 'dashBoard', action: 'findAlert')
         get "/api/dashboard/alert/$id(.$format)?"(controller: 'dashBoard', action: 'getAlert')
@@ -31,6 +34,8 @@ class UrlMappings {
         get "/api/dashboard/volume"(controller: 'dashBoard', action: 'getVolume')
 
         get "/api/dashboard/findSolution/$id(.$format)?"(controller: 'dashBoard', action: 'findSolution')
+
+        post "/api/dashboard/saveSolution"(controller: 'dashBoard', action: 'saveSolution')
         //--
     }
 }
