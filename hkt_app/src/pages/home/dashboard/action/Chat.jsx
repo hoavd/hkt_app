@@ -57,7 +57,11 @@ const Chat = ({ uuid }) => {
   const onMessageReceived = (payload) => {
     const { data, type } = JSON.parse(payload.body);
     console.log(data);
-    setDataAlertMsg(data);
+    if (type === 'solution') {
+      window.location.reload();
+    } else {
+      setDataAlertMsg(data);
+    }
     console.log(type);
   };
 

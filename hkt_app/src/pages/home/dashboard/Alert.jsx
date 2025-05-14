@@ -62,10 +62,25 @@ const Alert = () => {
           <div className='box-insert'>
             <p className='title-box'></p>
             <div className='box-insert-content template-two-col'>
-              <Form.Item name={'Test'} label={'Test'} key={1}>
+              <Form.Item name={'code'} label={'Code'} key={1}>
                 <Input disabled={true}></Input>
               </Form.Item>
-              <Form.Item name={'Test2'} label={'Test 2'} key={2}>
+              <Form.Item name={'type'} label={'Type'} key={2}>
+                <Input disabled={true}></Input>
+              </Form.Item>
+              <Form.Item name={'severity'} label={'Severity'} key={3}>
+                <Input disabled={true}></Input>
+              </Form.Item>
+              <Form.Item name={'desc'} label={'Desc'} key={4}>
+                <Input disabled={true}></Input>
+              </Form.Item>
+              <Form.Item name={'impactDetail'} label={'Impact Detail'} key={5}>
+                <Input disabled={true}></Input>
+              </Form.Item>
+              <Form.Item name={'rootcause'} label={'Rootcause'} key={6}>
+                <Input disabled={true}></Input>
+              </Form.Item>
+              <Form.Item name={'solution'} label={'Solution'} key={7}>
                 <Input disabled={true}></Input>
               </Form.Item>
             </div>
