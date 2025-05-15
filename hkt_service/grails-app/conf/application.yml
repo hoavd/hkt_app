@@ -85,21 +85,37 @@ dataSource:
   jmxExport: true
 environments:
   development:
+#    dataSource:
+#      url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;
+#      dbCreate: update
+#      logSql: true
+#      driverClassName: org.h2.Driver
+#      username: sa
+#      password: 'sa'
+#      type: com.zaxxer.hikari.HikariDataSource
+#      properties:
+#        idleTimeout: 60000
+#        minimumIdle: 5
+#        maximumPoolSize: 5
+#        connectionTimeout: 600000
+#        maxLifetime: 1800000
+#        poolName: 'grails-hikari-h2'
     dataSource:
-      url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;
-      dbCreate: update
+      pooled: true
       logSql: true
-      driverClassName: org.h2.Driver
-      username: sa
-      password: 'sa'
-      type: com.zaxxer.hikari.HikariDataSource
-      properties:
-        idleTimeout: 60000
-        minimumIdle: 5
-        maximumPoolSize: 5
-        connectionTimeout: 600000
-        maxLifetime: 1800000
-        poolName: 'grails-hikari-h2'
+      dbCreate: update
+      driverClassName: org.postgresql.Driver
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      username: postgres
+      password: admin123
+      url: jdbc:postgresql://localhost:5432/postgres
+      hikari:
+        maximumPoolSize: 10       # tối đa connection trong pool
+        minimumIdle: 2            # tối thiểu kết nối idle giữ sẵn
+        idleTimeout: 300000       # (ms) thời gian connection idle trước khi đóng
+        maxLifetime: 1800000      # (ms) thời gian tối đa 1 connection tồn tại
+        connectionTimeout: 30000  # (ms) timeout chờ lấy connection từ pool
+        poolName: HikariPool
   production:
     dataSource:
       url: jdbc:h2:mem:devDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE;

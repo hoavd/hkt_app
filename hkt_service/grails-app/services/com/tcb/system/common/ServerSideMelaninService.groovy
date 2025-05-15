@@ -192,15 +192,17 @@ class ServerSideMelaninService {
                 String order_by = params["order[0][dir]"]
                 query.append(" order by " + order_col_name + " " + order_by)
             }
+            //kieu postgree
+            query.append(" LIMIT "+length+" OFFSET "+params.offset+"")
+            def resultset = sql.rows(query.toString(), whereParam)
             //25102019 xoa vi dung kieu oracle
-            end = start + length
-            StringBuilder queryTemp = new StringBuilder()
-            queryTemp.append("SELECT * FROM (SELECT zz.*, ROWNUM rnum FROM (")
-            queryTemp.append(query.toString())
-            queryTemp.append(") zz WHERE ROWNUM <= " + end + ") WHERE rnum >" + start)
+//            end = start + length
+//            StringBuilder queryTemp = new StringBuilder()
+//            queryTemp.append("SELECT * FROM (SELECT zz.*, ROWNUM rnum FROM (")
+//            queryTemp.append(query.toString())
+//            queryTemp.append(") zz WHERE ROWNUM <= " + end + ") WHERE rnum >" + start)
+//            def resultset = sql.rows(queryTemp.toString(), whereParam)
 
-//			println "query table gen: "+query.toString()
-            def resultset = sql.rows(queryTemp.toString(), whereParam)
             if (resultset) {
                 for (p in resultset) {
                     Map<String, String> val = new HashMap<>()

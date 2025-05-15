@@ -3,7 +3,7 @@ import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 
 import { useEffect, useRef, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { parse, format, subMinutes } from 'date-fns';
 import { BASE_URL_SOCKET, topicPath } from '../../../config/apiPath';
 import { getToken } from '../../../utils/storage';
@@ -129,15 +129,63 @@ export default function Dashboard() {
     return null;
   };
 
+  const latestSuccessRate = filteredData.length > 0 ? filteredData[filteredData.length - 1].successRate : 0;
+
+  // Hàm để lấy màu theo tỷ lệ
+  const getSuccessColor = (rate) => {
+    if (rate > 97) return 'green';
+    if (rate > 95 && rate <= 97) return 'yellow';
+    if (rate <= 95) return 'red';
+    return 'inherit';
+  };
+  const generateFixedBars = (data, size = 20) => {
+    // Nếu data đã đủ size thì trả luôn
+    if (data.length >= size) return data.slice(-size);
+
+    const paddedData = [...data];
+
+    // Lấy timestamp gần nhất hoặc giờ hiện tại làm ref
+    const lastTimestamp = data.length > 0 ? new Date(data[data.length - 1].timestamp) : new Date();
+
+    // Tạo các cột trống ở đầu để đủ 20 cột
+    for (let i = data.length; i < size; i++) {
+      const time = new Date(lastTimestamp.getTime() - 1000 * (size - i)); // giả sử mỗi cột cách nhau 1 giây
+      paddedData.unshift({
+        timestamp: time.toISOString(),
+        totalRequests: 0,
+        successRate: 0,
+        errorRate: 0,
+        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      });
+    }
+
+    return paddedData;
+  };
+
+  const barData = generateFixedBars(filteredData, 20);
+  const formatTime = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
   /* ---------- UI ---------- */
   return (
     <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
         <h1 style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>Realtime Request Rates (Simulated)</h1>
-        <div style={{ display: 'none', alignItems: 'center', gap: 8 }}>
-          <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-          <input type='time' value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
-          <input type='time' value={toTime} onChange={(e) => setToTime(e.target.value)} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'none' }}>
+            <input type='date' value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+            <input type='time' value={fromTime} onChange={(e) => setFromTime(e.target.value)} />
+            <input type='time' value={toTime} onChange={(e) => setToTime(e.target.value)} />
+          </div>
+          <div
+            style={{
+              fontWeight: 'bold',
+              fontSize: 20,
+              color: getSuccessColor(latestSuccessRate)
+            }}
+          >
+            {latestSuccessRate}%
+          </div>
           <button onClick={reset} style={{ padding: '6px 12px', background: '#ccc', border: 'none', borderRadius: 4 }}>
             Reset
           </button>
@@ -147,47 +195,32 @@ export default function Dashboard() {
       <div style={{ display: 'flex', flexDirection: 'row', gap: 16, marginTop: 32 }}>
         <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
           <ResponsiveContainer width='100%' height={300}>
-            <LineChart data={filteredData} syncId='metrics'>
+            <AreaChart data={filteredData}>
               {/*<XAxis dataKey='time' interval={59} tick={{ fontSize: 10, fill: '#e7e3e1' }} />*/}
-              <XAxis
-                dataKey='timestamp'
-                tickFormatter={(tick) =>
-                  new Date(tick).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                  })
-                }
-                tick={{ fontSize: 10, fill: '#e7e3e1' }}
-              />
-              ;
+              <XAxis dataKey='timestamp' tickFormatter={formatTime} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
               <YAxis domain={[0, 100]} orientation='right' tickFormatter={(v) => `${v}%`} />
               <Tooltip content={<TooltipBox />} />
               <Legend verticalAlign='top' />
-              <Line type='monotone' dataKey='successRate' stroke='#4CAF50' dot={false} name='Success Rate' />
-              <Line type='monotone' dataKey='errorRate' stroke='#F44336' dot={false} name='Error Rate' />
-            </LineChart>
+              <Area
+                type='monotone'
+                dataKey='successRate'
+                stroke='#4CAF50'
+                fill='#4CAF50'
+                fillOpacity={0.3}
+                name='Success Rate'
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
         <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: 8, padding: 16, background: 'rgb(36, 37, 37)' }}>
           <ResponsiveContainer width='100%' height={300}>
-            <LineChart data={filteredData} syncId='metrics'>
-              <XAxis
-                dataKey='timestamp'
-                tickFormatter={(tick) =>
-                  new Date(tick).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                  })
-                }
-                tick={{ fontSize: 10, fill: '#e7e3e1' }}
-              />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: '#3c81ef' }} />
+            <BarChart data={barData}>
+              <XAxis dataKey='timestamp' tickFormatter={formatTime} tick={{ fontSize: 10, fill: '#e7e3e1' }} />
+              <YAxis domain={[0, 20]} tick={{ fontSize: 10, fill: '#3c81ef' }} />
               <Tooltip content={<TooltipBox />} />
               <Legend verticalAlign='top' />
-              <Line type='monotone' dataKey='totalRequests' stroke='#2196F3' dot={false} name='Total Requests' />
-            </LineChart>
+              <Bar dataKey='totalRequests' fill='#2196F3' name='Total Requests' />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

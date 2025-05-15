@@ -15,6 +15,7 @@ class Alert extends BaseDomain {
 
     static mapping = {
         table "${Holders.grailsApplication.config.prefix}_alert"
+        desc column: 'description'
     }
 
     static constraints = {

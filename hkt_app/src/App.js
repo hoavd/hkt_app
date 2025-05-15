@@ -5,7 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
-import NotificationSound from './assets/audio/audio.mp4';
+import NotificationSound from './assets/audio/audio.mp3';
 import './assets/styles/app.css';
 import './assets/styles/app.scss';
 import { ErrorBoundary } from './components/bundary/ErrorBundary';
@@ -55,6 +55,9 @@ const App = () => {
     const message = JSON.parse(payload.body);
     if (payload.headers.destination === topicPath.topicAlert) {
       dispatch(setAlert(message));
+      audioPlayer.current?.play().catch((err) => {
+        console.warn('Audio play failed:', err);
+      });
       if (message.data.type === 'error') {
         notify.error('Co error');
       } else {
@@ -78,7 +81,7 @@ const App = () => {
   return (
     <ContextProviderLayout>
       <ErrorBoundary>
-        <ToastContainer className='foo' />
+        <ToastContainer className='foo' style={{ top: '70px' }} />
         <div className='app'>
           <audio ref={audioPlayer} src={NotificationSound} type='audio/mpeg' />
           <HashRouter>

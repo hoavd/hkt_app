@@ -12,7 +12,7 @@ class LogAction {
     static mapping = {
         table "${Holders.grailsApplication.config.prefix}_log_action"
         actiontime sqlType: "date"
-        parameters sqlType: "clob"
+        parameters sqlType: "text"
     }
 
     static constraints = {

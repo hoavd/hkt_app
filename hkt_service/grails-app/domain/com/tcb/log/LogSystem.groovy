@@ -12,8 +12,8 @@ class LogSystem extends BaseDomain {
     String note
     static mapping = {
         table "${Holders.grailsApplication.config.prefix}_log_system"
-        exception sqlType: "clob"
-        message sqlType: "clob"
+        exception sqlType: "text"
+        message sqlType: "text"
         actiontime sqlType: "date"
     }
 

@@ -7,7 +7,7 @@ class RoleDetail {
     Module module
     String dschucnang
     static mapping = {
-        dschucnang sqlType: "clob"
+        dschucnang sqlType: "text"
     }
 
     static constraints = {

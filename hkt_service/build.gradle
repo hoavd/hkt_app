@@ -72,6 +72,7 @@ dependencies {
     compileOnly "io.micronaut:micronaut-inject-groovy"
     console "org.grails:grails-console"
     runtimeOnly 'com.zaxxer:HikariCP:5.0.1'
+    runtimeOnly "org.postgresql:postgresql:42.7.3"
     runtimeOnly "com.h2database:h2"
     runtimeOnly "org.apache.tomcat:tomcat-jdbc"
     testImplementation "io.micronaut:micronaut-inject-groovy"

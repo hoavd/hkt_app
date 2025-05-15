@@ -21,7 +21,7 @@ class BootStrap {
                 '/', '/oauth/', '/oauth/*', '/h2-console', '/h2-console/**',
                 '/login', '/login.*', '/login/**',
                 '/logout', '/logout.*', '/logout/*',
-                '/assets/**', '/stomp', '/stomp/**', '/swagger/**','/stomppy', '/stomppy/**',
+                '/assets/**', '/stomp', '/stomp/**', '/swagger/**', '/stomppy', '/stomppy/**',
                 '/api/user/listRoleGroup', '/api/role/clearCachedRequestmaps',
                 '/api/fingerprint/navItem', '/api/fingerprint/clearCachedRequestMaps',
                 '/chat/**'
@@ -84,7 +84,7 @@ class BootStrap {
                 user.setId(1)
                 user.save(flush: true, failOnError: true)
                 def userRole = new UserRole()
-                def roleAdmin = Role.findById(1)
+                def roleAdmin = Role.findByAuthority('ROLE_ADMIN')
                 userRole.setUser(user)
                 userRole.setRole(roleAdmin)
                 userRole.save(flush: true, failOnError: true)

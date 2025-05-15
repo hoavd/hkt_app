@@ -66,7 +66,7 @@ class User implements Serializable {
         lastLogin sqlType: "date"
         lastLogout sqlType: "date"
         updateDate sqlType: "date"
-        publicInfo  sqlType: "clob"
+        publicInfo  sqlType: "text"
     }
 
     Set<Role> getAuthorities() {

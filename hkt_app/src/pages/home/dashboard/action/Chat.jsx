@@ -48,7 +48,6 @@ const Chat = ({ uuid }) => {
     stompClient.connect({ Authorization: 'Bearer ' + token }, onConnected, onError);
   };
   const onConnected = () => {
-    console.log('uuid: ' + uuid);
     if (uuid) {
       stompClient.subscribe(`${topicPath.topicMessage}-${uuid}`, onMessageReceived);
     }
@@ -56,13 +55,11 @@ const Chat = ({ uuid }) => {
 
   const onMessageReceived = (payload) => {
     const { data, type } = JSON.parse(payload.body);
-    console.log(data);
     if (type === 'solution') {
       window.location.reload();
     } else {
       setDataAlertMsg(data);
     }
-    console.log(type);
   };
 
   useEffect(() => {

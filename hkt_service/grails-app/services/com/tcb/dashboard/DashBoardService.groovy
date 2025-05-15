@@ -13,7 +13,6 @@ class DashBoardService {
     def brokerMessagingTemplate
     def commonService
     def springSecurityService
-    def dateTimeUtilService
 
     @Transactional
     def pushAlert(def json) {
@@ -24,7 +23,14 @@ class DashBoardService {
                 alert.createdBy = springSecurityService.principal.username
                 alert.save(flush: true, failOnError: true)
                 JSONObject data = new JSONObject()
-                data = commonService.setDataObject(data: json)
+                data = commonService.setDataObject(data: [alerId      : alert.id,
+                                                          uuid        : alert.uuid,
+                                                          code        : alert.code,
+                                                          type        : alert.type,
+                                                          desc        : alert.desc,
+                                                          severity    : alert.severity,
+                                                          impactDetail: alert.impactDetail,
+                                                          createDate  : commonService.formatDateToString(alert.createDate, "yyyy-MM-dd HH:mm:ss")])
                 brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_ALERT, data
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
             }
@@ -62,21 +68,25 @@ class DashBoardService {
             try {
                 if (json?.msg) {
                     Alert alert = Alert.findByUuid(json.uuid)
-                    Message message = new Message()
-                    message.alert = alert
-                    message.properties = json
-                    message.createdBy = springSecurityService.principal.username
-                    message.save(flush: true, failOnError: true)
-                    JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_MESSAGE,
-                            data: [alerId    : alert.id,
-                                   uuid      : alert.uuid,
-                                   id        : message.id,
-                                   msg       : message.msg,
-                                   createdBy : message.createdBy,
-                                   createDate: commonService.formatDateToString(message.createDate, "dd/MM/yyyy HH:mm:ss")
-                            ])
-                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
-                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
+                    if (alert) {
+                        Message message = new Message()
+                        message.alert = alert
+                        message.properties = json
+                        message.createdBy = springSecurityService.principal.username
+                        message.save(flush: true, failOnError: true)
+                        JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_MESSAGE,
+                                data: [alerId    : alert.id,
+                                       uuid      : alert.uuid,
+                                       id        : message.id,
+                                       msg       : message.msg,
+                                       createdBy : message.createdBy,
+                                       createDate: commonService.formatDateToString(message.createDate, "dd/MM/yyyy HH:mm:ss")
+                                ])
+                        brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                        brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
+                    } else {
+                        return new ServiceResult(success: false, msg: ResultMsgConstant.RECORD_UNDEFINED)
+                    }
                 }
                 return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
             }
@@ -132,8 +142,8 @@ class DashBoardService {
         try {
             StringBuilder sql = new StringBuilder()
             def whereParam = []
-            sql.append(""" SELECT id, uuid, code, type, desc, severity, impact_Detail, rootcause, solution, create_date
-                             FROM (SELECT id, uuid, code, type, desc, severity, impact_Detail, rootcause, solution,
+            sql.append(""" SELECT id, uuid, code, type, description, severity, impact_Detail, rootcause, solution, create_date
+                             FROM (SELECT id, uuid, code, type, description, severity, impact_Detail, rootcause, solution,
                                           TO_CHAR(create_date, 'YYYY-MM-DD HH24:MI:SS') create_date
                                      FROM tcb_alert d
                                     WHERE 2 = 2 """)
@@ -165,7 +175,7 @@ class DashBoardService {
                              rootcause   : d.rootcause,
                              solution    : d.solution,
                              createDate  : d.create_date,
-                             desc        : d.desc])
+                             desc        : d.description])
                 newData.push(data)
             }
             return listdynamic.put("data", newData)
@@ -178,8 +188,8 @@ class DashBoardService {
     def getAlert(def params) {
         StringBuilder sql = new StringBuilder()
         def whereParam = []
-        sql.append(""" SELECT id, uuid, code, type, desc, severity, impact_Detail, rootcause, solution
-                         FROM (SELECT id, uuid, code, type, desc, severity, impact_Detail, rootcause, solution,
+        sql.append(""" SELECT id, uuid, code, type, description, severity, impact_Detail, rootcause, solution
+                         FROM (SELECT id, uuid, code, type, description, severity, impact_Detail, rootcause, solution,
                                           TO_CHAR(create_date, 'YYYY-MM-DD HH24:MI:SS') create_date
                                      FROM tcb_alert d
                                     WHERE 2 = 2
@@ -198,7 +208,7 @@ class DashBoardService {
                                                 impactDetail: d.impact_Detail,
                                                 rootcause   : d.rootcause,
                                                 solution    : d.solution,
-                                                desc        : d.desc
+                                                desc        : d.description
             ])
         }
         if (data) {
@@ -238,16 +248,21 @@ class DashBoardService {
         Alert.withTransaction { def status ->
             try {
                 Alert alert = Alert.findByUuid(params.id)
-                JSONObject data = new JSONObject()
-                data = commonService.setDataObject([uuid        : alert.uuid,
-                                                    code        : alert.code,
-                                                    type        : ConstantWebSocket.TOPIC_MESSAGE_TYPE_SOLUTION,
-                                                    severity    : alert.severity,
-                                                    impactDetail: alert.impactDetail,
-                                                    desc        : alert.desc
-                ])
-                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
-                return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+                if (alert) {
+                    JSONObject data = new JSONObject()
+                    data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_FIND_SOLUTION,
+                            data: [alerId      : alert.id,
+                                   uuid        : alert.uuid,
+                                   code        : alert.code,
+                                   severity    : alert.severity,
+                                   impactDetail: alert.impactDetail,
+                                   desc        : alert.desc
+                            ])
+                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE, data
+                    return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+                } else {
+                    return new ServiceResult(success: false, msg: ResultMsgConstant.RECORD_UNDEFINED)
+                }
             } catch (Exception e) {
                 commonService.printlnException(e, 'findSolution')
                 return []
@@ -259,18 +274,22 @@ class DashBoardService {
         Alert.withTransaction { def status ->
             try {
                 Alert alert = Alert.findByUuid(json.uuid)
-                alert.solution = json.solution
-                alert.updateDate = new Date()
-                alert.updatedBy = springSecurityService.principal.username
-                JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_SOLUTION,
-                        data: [alerId    : alert.id,
-                               uuid      : alert.uuid,
-                               msg       : alert.solution,
-                               createdBy : alert.updatedBy,
-                               createDate: commonService.formatDateToString(alert.createDate, "dd/MM/yyyy HH:mm:ss")
-                        ])
-                brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
-                return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+                if (alert) {
+                    alert.solution = json.solution
+                    alert.updateDate = new Date()
+                    alert.updatedBy = springSecurityService.principal.username
+                    JSONObject data = commonService.setDataObject(type: ConstantWebSocket.TOPIC_MESSAGE_TYPE_SOLUTION,
+                            data: [alerId    : alert.id,
+                                   uuid      : alert.uuid,
+                                   msg       : alert.solution,
+                                   createdBy : alert.updatedBy,
+                                   createDate: commonService.formatDateToString(alert.createDate, "yyyy-MM-dd HH:mm:ss")
+                            ])
+                    brokerMessagingTemplate.convertAndSend ConstantWebSocket.TOPIC_MESSAGE + "-${alert.uuid}", data
+                    return new ServiceResult(success: true, msg: ResultMsgConstant.SUCCESS)
+                } else {
+                    return new ServiceResult(success: false, msg: ResultMsgConstant.RECORD_UNDEFINED)
+                }
             } catch (Exception e) {
                 commonService.printlnException(e, 'saveSolution')
                 return []
